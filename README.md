@@ -1,23 +1,26 @@
-# Interview Preparation API
+# Interview Preparation Backend API
 
-This folder contains the Express backend for the interview preparation application. It accepts a candidate's resume and target job description, uses Google Gemini to generate an interview report, stores reports in MongoDB, stores login sessions in Redis, and can generate a tailored resume PDF.
+This API generates interview preparation reports from a candidate's resume, job description, and self-description. It also provides user authentication, saved report access, and tailored resume PDF downloads.
 
-## Requirements
+- Base URL: `http://localhost:3000`
+- Authentication routes prefix: `/api/auth`
+- Interview routes prefix: `/api/interview`
+
+## Running the Backend
 
 - Node.js 18 or newer
 - MongoDB
 - Redis
-- A Google Gemini API key with access to the model configured in `src/services/ai.service.js`
+- A Google Gemini API key
 
-## Initialize And Run
-
-From this folder:
+1. Install dependencies:
 
 ```bash
+cd backend
 npm install
 ```
 
-Create a `.env` file in `backend/`:
+2. Create a `.env` file in the `backend` folder:
 
 ```env
 MONGO_URI=mongodb://127.0.0.1:27017/interview-preparation
@@ -26,36 +29,15 @@ JWT_SECRET=replace-with-a-long-random-secret
 GOOGLE_GENAI_API_KEY=your-google-genai-api-key
 ```
 
-Start MongoDB and Redis, then run the API:
+3. Start MongoDB and Redis.
+
+4. Start the server:
 
 ```bash
 npm run dev
 ```
 
-The server listens on `http://localhost:3000`. `npm start` currently runs the same Nodemon command as `npm run dev`.
-
-On startup the backend attempts to connect to MongoDB and Redis. A failed database connection is logged; it does not prevent the HTTP listener from being created, so check the startup logs before testing the API.
-
-## Configuration And Integration
-
-- JSON request bodies are enabled globally.
-- CORS allows `http://localhost:5173` and `https://interview-frontend-sable.vercel.app`.
-- Credentialed CORS is enabled. Browser clients must send requests with credentials (`withCredentials: true`).
-- Login writes an HTTP-only `token` cookie. Protected routes read this cookie and do not read an `Authorization` header.
-- The cookie is configured with `secure: true` and `sameSite: "none"`; use a browser/environment that accepts this configuration, especially when developing over plain HTTP.
-- Resume uploads are held in memory and limited to 3 MB. The application expects a PDF file in the `resume` field.
-
-## Authentication
-
-Authentication is session-backed JWT authentication:
-
-1. Register a user.
-2. Log in with the username or email.
-3. Preserve the `token` cookie returned by login.
-4. Send that cookie on protected requests.
-5. Log out to delete the Redis session and clear the cookie.
-
-The JWT expires after one day, and its Redis session also expires after one day.
+The server runs on port `3000` by default. Login creates an HTTP-only `token` cookie. Send this cookie with protected requests; browser clients must enable credentials. Protected endpoints do not use an `Authorization` bearer token.
 
 ## API Reference
 
@@ -279,19 +261,7 @@ Content-Disposition: attachment; filename=resume_665f1a2b3c4d5e6f78901234.pdf
 
 If the report ID does not exist, the response is `404` with `Interview report not found.`
 
-## Data Schemas
-
-### User
-
-| Field | Type | Rules |
-| --- | --- | --- |
-| `username` | String | Required and unique. |
-| `email` | String | Required and unique. |
-| `password` | String | Required; stored as a bcrypt hash. |
-
-Passwords are not returned by the auth controllers.
-
-### Interview Report
+## Interview Report Schema
 
 | Field | Type | Rules |
 | --- | --- | --- |
