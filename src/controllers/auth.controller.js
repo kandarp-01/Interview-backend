@@ -69,7 +69,12 @@ async function loginUser(req, res) {
     username: isExist.username,
   });
   await redisClient.expire(`session:${jti}`, 60 * 60 * 24);
-  res.cookie("token", token);
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 24 * 60 * 60 * 1000,
+  });
   res.status(201).json({
     message: "User logged in successfully",
     token,
